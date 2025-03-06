@@ -165,7 +165,7 @@ resource "aws_security_group" "main_sg" {
 
 ### Definimos o nome dinamicamente e associamos à VPC. Criamos a regra de conexões SSH (porta 22) para um IP, ou faixa de IPs, confiável para restringir o acesso. Também removemos a permissão IPv6 (se necessário utilizar um intervalo mais restrito)
 
-### Alpem disso, permitir todo tráfego de saída pode ser uma exposição desnecessária, por isso, para acessar a internet, deixei apenas HTTP (porta 80) e HTTPS (porta 443) disponíveis
+### Além disso, permitir todo tráfego de saída pode ser uma exposição desnecessária, por isso, para acessar a internet, deixei apenas HTTP (porta 80) e HTTPS (porta 443) disponíveis
 
 ```hcl
 data "aws_ami" "debian12" {
