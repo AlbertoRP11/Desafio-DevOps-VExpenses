@@ -11,12 +11,12 @@ variable "projeto" {
 variable "candidato" {
   description = "Nome do candidato"
   type        = string
-  default     = "SeuNome"
+  default     = "Alberto"
 }
 
 resource "tls_private_key" "ec2_key" {
   algorithm = "RSA"
-  rsa_bits  = 2048
+  rsa_bits  = 4096
 }
 
 resource "aws_key_pair" "ec2_key_pair" {
@@ -139,17 +139,14 @@ resource "aws_instance" "debian_ec2" {
               #!/bin/bash
               apt-get update -y
               apt-get upgrade -y
+              apt-get install -y nginx
+              systemctl enable nginx
+              systemctl start nginx
               EOF
 
   tags = {
     Name = "${var.projeto}-${var.candidato}-ec2"
   }
-}
-
-output "private_key" {
-  description = "Chave privada para acessar a instância EC2"
-  value       = tls_private_key.ec2_key.private_key_pem
-  sensitive   = true
 }
 
 output "ec2_public_ip" {

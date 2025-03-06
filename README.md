@@ -12,7 +12,7 @@ provider "aws" {
 
 ### Essa primeira parte do código define a AWS como provedor da nossa infraestutura, uma vez que o Terraform suporta múltiplos provedores, sendo possível, inclusive utilizar mais de um se necessário.
 
-### Vale destacar que estamos utilizando a região "us-east-1" que é uma das mais barata para criação de recursos na AWS, garantindo assim uma infraestutura mais custo-eficiente.
+### Vale destacar que estamos utilizando a região "us-east-1" que é uma das mais baratas para criação de recursos na AWS, garantindo assim uma infraestutura mais custo-eficiente.
 
 ```hcl
 variable "projeto" {
@@ -198,6 +198,9 @@ resource "aws_instance" "debian_ec2" {
               #!/bin/bash
               apt-get update -y
               apt-get upgrade -y
+              apt-get install -y nginx
+              systemctl enable nginx
+              systemctl start nginx
               EOF
 
   tags = {
@@ -206,23 +209,17 @@ resource "aws_instance" "debian_ec2" {
 }
 ```
 
-### Aqui estamos criando uma instância EC2 com 20GB de armazenamento, endereço IP público e script de inicialização (user_data) que atualiza o sistema.
+### Aqui estamos criando uma instância EC2 com 20GB de armazenamento (utilizando o tamanho t2.micro conseguimos utilizar a camada gratuita da AWS), endereço IP público e script de inicialização (user_data) que atualiza o sistema. 
 
 ### Vale ressaltar que garantimos também a exclusão automática do disco ao deletar a instância
 
-### Utilizando o tamanho t2.micro conseguimos utilizar a camada gratuita da AWS e com tudo citado temos uma VM Debian pronta para ser utilizada.
+### Por meio dos comandos `apt-get install -y nginx`, `systemctl enable nginx` e `systemctl start nginx`, fizemos a instalação, habilitamos o início automático no boot e inicamos o serviço Nginx imediatamente após a instalação.
 
 ```hcl
-output "private_key" {
-  description = "Chave privada para acessar a instância EC2"
-  value       = tls_private_key.ec2_key.private_key_pem
-  sensitive   = true
-}
-
 output "ec2_public_ip" {
   description = "Endereço IP público da instância EC2"
   value       = aws_instance.debian_ec2.public_ip
 }
 ```
 
-### Basicamente, nesses dois últimos trechos do código, estamos exibindo a chave privada SSH usada para acessar nossa instância e o endereço IP público da EC2 criada.
+### Nesse ultimo trecho estamos exibindo o endereço IP público da EC2 criada.
