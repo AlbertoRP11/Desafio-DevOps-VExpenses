@@ -85,19 +85,26 @@ resource "aws_security_group" "main_sg" {
     from_port        = 22
     to_port          = 22
     protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    cidr_blocks      = [["<ip-confiavel>/32"]]
+    ipv6_cidr_blocks = []
   }
 
-  # Regras de saída
-  egress {
-    description      = "Allow all outbound traffic"
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
+  # Regras de saída (restringir o tráfego de saída)
+egress {
+  description      = "Allow HTTP/HTTPS outbound traffic"
+  from_port        = 80
+  to_port          = 80
+  protocol         = "tcp"
+  cidr_blocks      = ["0.0.0.0/0"]
+}
+
+egress {
+  description      = "Allow HTTPS outbound traffic"
+  from_port        = 443
+  to_port          = 443
+  protocol         = "tcp"
+  cidr_blocks      = ["0.0.0.0/0"]
+}
 
   tags = {
     Name = "${var.projeto}-${var.candidato}-sg"

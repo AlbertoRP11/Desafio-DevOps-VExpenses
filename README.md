@@ -24,7 +24,7 @@ variable "projeto" {
 variable "candidato" {
   description = "Nome do candidato"
   type        = string
-  default     = "SeuNome"
+  default     = "Alberto"
 }
 ```
 
@@ -33,7 +33,7 @@ variable "candidato" {
 ```hcl
 resource "tls_private_key" "ec2_key" {
   algorithm = "RSA"
-  rsa_bits  = 2048
+  rsa_bits  = 4096
 }
 
 resource "aws_key_pair" "ec2_key_pair" {
@@ -44,7 +44,7 @@ resource "aws_key_pair" "ec2_key_pair" {
 
 ### Aqui estamos definindo recursos para gerar e gerenciar um par de chaves SSH, que serão usadas para acessar nossa instância EC2.
 
-### Utilizamos o provedor TLS, com o algoritmo RSA, para gerar uma chave privada de 2048 bits, garantindo assim conexões SSH de forma segura.
+### Utilizamos o provedor TLS, com o algoritmo RSA, para gerar uma chave privada de 4096 bits, garantindo assim conexões SSH de forma mais segura contra ataques de força bruta. Apesar disso, é importante considerar desvantagens em relação a desempenho e armazenamento que uma chave maior pode trazer.
 
 ```hcl
 resource "aws_vpc" "main_vpc" {
@@ -134,18 +134,25 @@ resource "aws_security_group" "main_sg" {
     from_port        = 22
     to_port          = 22
     protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    cidr_blocks      = [["<ip-confiavel>/32"]]
+    ipv6_cidr_blocks = []
   }
 
-  # Regras de saída
+  # Regras de saída (restringir o tráfego de saída)
   egress {
-    description      = "Allow all outbound traffic"
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
+    description      = "Allow HTTP/HTTPS outbound traffic"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  egress {
+    description      = "Allow HTTPS outbound traffic"
+    from_port        = 443
+    to_port          = 443
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
   }
 
   tags = {
@@ -154,9 +161,11 @@ resource "aws_security_group" "main_sg" {
 }
 ```
 
-### Aqui estamos criando um Security Group, que funciona como um firewall, controlando o tráfego de entrada e saída para as instâncias da nossa VPC
+### Aqui estamos criando um Security Group, que funciona como um firewall, controlando o tráfego de entrada e saída para as instâncias da nossa VPC.
 
-### Definimos o nome dinamicamente e associamos à VPC. Criamos a regra de conexões SSH na porta 22 vindas de qualquer origem e também permitimos todo o tráfego de saída, ou seja, qualquer instância dentro da VPC pode se comunicar com a internet.
+### Definimos o nome dinamicamente e associamos à VPC. Criamos a regra de conexões SSH (porta 22) para um IP, ou faixa de IPs, confiável para restringir o acesso. Também removemos a permissão IPv6 (se necessário utilizar um intervalo mais restrito)
+
+### Alpem disso, permitir todo tráfego de saída pode ser uma exposição desnecessária, por isso, para acessar a internet, deixei apenas HTTP (porta 80) e HTTPS (porta 443) disponíveis
 
 ```hcl
 data "aws_ami" "debian12" {
